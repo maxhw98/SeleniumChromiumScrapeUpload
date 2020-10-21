@@ -12,4 +12,5 @@
 ## Credits
 inspiration from this project
 https://github.com/21Buttons/pychromeless)
-I forked this project originally to play with it and used vittorio nardone's layer and makefile structure
+
+as well as the original project I forked (vittorio nardone's), to play with the layer and makefile structure he set up
