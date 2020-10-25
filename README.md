@@ -35,6 +35,8 @@ Uses the tiny "html_table_parser" module to convert an HTML table to an array of
       now run the create-stack command and it'll stick in the given bucket (as long as your AWS account has access to that bucket)
 4. AWS settings:
     - EventBridge rule is `cron(0 13 * * ? *)`, which runs daily at 13 UTC, which is 8am CST/9am EST 
+    - Layer should hook up automatically but always worth checking. You can actually add additional layers but the 250 MB cap is for all layers associated with a function
+    - You can tailor the memory and timeout to your needs, though with pygsheets its always good to give it a little extra time to make sure it has time to talk to the google API
 
 ## License
 
