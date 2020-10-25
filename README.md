@@ -34,7 +34,7 @@ Uses the tiny "html_table_parser" module to convert an HTML table to an array of
       - log in to AWS CL tools with `aws configure` and input your AWS access key id, secret key id, region and output format (which should be JSON in all caps)
       now run the create-stack command and it'll stick in the given bucket (as long as your AWS account has access to that bucket)
 4. AWS settings:
-    - settings
+    - EventBridge rule is `cron(0 13 * * ? *)`, which runs daily at 13 UTC, which is 8am CST/9am EST 
 
 ## License
 
