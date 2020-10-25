@@ -30,7 +30,7 @@ Uses the tiny "html_table_parser" module to convert an HTML table to an array of
     - `make lambda-layer-build` + `make lamdba-function-build` to build your ZIP files of source code and layer requirements
     - `make BUCKET=your_bucket_name create-stack` to upload the stack to your specified AWS bucket
       - to do this you will need to have AWS command line tools installed.
-      - change the install location in the makefile, the path is currently set as /Users/your_username/bin/aws
+      - change the install location in the makefile, the path is currently set as `/Users/your_username/bin/aws`
       - log in to AWS CL tools with `aws configure` and input your AWS access key id, secret key id, region and output format (which should be JSON in all caps)
       now run the create-stack command and it'll stick in the given bucket (as long as your AWS account has access to that bucket)
 4. AWS settings:
