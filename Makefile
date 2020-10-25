@@ -12,7 +12,7 @@ docker-build:
 ## run "src.lambda_function.lambda_handler" with docker-compose
 ## mapping "./tmp" and "./src" folders. 
 ## "event.json" file is loaded and provided to lambda function as event parameter  
-lambda-run:	docker-build		
+docker-run:	docker-build		
 	docker-compose run lambda src.lambda_function.lambda_handler 
 
 ## prepares layer.zip archive for AWS Lambda Layer deploy 
