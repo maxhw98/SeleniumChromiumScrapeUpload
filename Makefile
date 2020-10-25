@@ -38,6 +38,6 @@ lambda-function-build: clean
 ## create CloudFormation stack with lambda function and role.
 ## usage:	make BUCKET=your_bucket_name create-stack 
 create-stack: 
-	/Users/max/bin/aws s3 cp layer.zip s3://${BUCKET}/src/SeleniumChromiumLayer.zip
-	/Users/max/bin/aws s3 cp deploy.zip s3://${BUCKET}/src/ScrapeFunction.zip
-	/Users/max/bin/aws cloudformation create-stack --stack-name LambdaScrape --template-body file://cloud.yaml --parameters ParameterKey=BucketName,ParameterValue=${BUCKET} --capabilities CAPABILITY_IAM
+	/Users/your_username/bin/aws s3 cp layer.zip s3://${BUCKET}/src/SeleniumChromiumLayer.zip
+	/Users/your_username/bin/aws s3 cp deploy.zip s3://${BUCKET}/src/ScrapeFunction.zip
+	/Users/your_username/bin/aws cloudformation create-stack --stack-name LambdaScrape --template-body file://cloud.yaml --parameters ParameterKey=BucketName,ParameterValue=${BUCKET} --capabilities CAPABILITY_IAM
