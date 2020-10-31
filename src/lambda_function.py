@@ -30,90 +30,71 @@ sheet_names = ['Today Performance Report Raw Data',
 
 # main function in AWS lambda enviroment
 def lambda_handler(event, context):
-    dates = get_dates()  # get the date ranges to pull based on the current date and time, the AWS enviroment operates in UTC, so i actually skip back a few hours
-    master_table_list = []
-    # get the data
+    # initialize dates
+    dates = get_dates()
+    # make directory in tmp (my only writiable dir) for the files
+    os.chdir("/tmp")
+    os.mkdir("data_downloads")
+    os.chdir("data_downloads")
+    # get excel sheets
     for date in dates:
-        perf_parser = scrape_page(date, get_default_chrome_options(), perf_url)
-        master_table_list.append(comb_tab(perf_parser))
-    # upload it to sheets
-    for i in range(len(sheet_names)):
-        update_sheets(sheet_names[i], master_table_list[i])
-    # no real need for a return but having the dates pulled is good for debugging, checking accuracy, etc
-    return(dates)
+        scrape_page(date, get_default_chrome_options(), perf_url)
+    # sort em
+    files = os.listdir()
+    correct_order = files.sort(key=os.path.getmtime)
+    # initalize table for data
+    tables = []
+    # fill the table
+    for i in range(len(files)):
+        tables.append(make_tab(files[i]))
+    
+    for i in range(len(tables)):
+        curr_sheet = sh.worksheet_by_title(sheet_names[i])
+        curr_sheet.update_values('A1', tables[i])
+        print(sheet_names[i],"updated")
+    # return(tables)
 
 
 def scrape_page(date, options_in, url):
-    # get fresh parser and driver
-    myParser = HTMLTableParser()
+    
     driver = webdriver.Chrome(chrome_options=options_in)
     
-    # login to page
     driver.get(url)
     driver.find_element_by_name('login_name').send_keys(username)
     driver.find_element_by_name('password').send_keys(password)
     driver.find_element_by_name('submit').click()
-    
-    # get the JS date object
+
     hidden_element = driver.find_element_by_xpath('/html/body/div[1]/div[2]/div/div[2]/div[1]/form/div/div[1]/div/input')
-    
-    # tell it the date range to pull
+
     driver.execute_script(date, hidden_element)
     driver.find_element_by_name('filter').click()
     time.sleep(1)
-    
-    # grab the HTML table and give it to the parser
-    table = driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div[2]/table')
-    outerHTML = table.get_attribute('outerHTML')
-    myParser.feed(outerHTML)
-    
-    # get the next page
-    curr_url = driver.current_url
-    page_num = 2
-    curr_url = curr_url + "&page="+str(page_num)
 
-    # keep going for all the pages
-    while(nested_scrape(date, options_in, curr_url, myParser, driver)):
-        if page_num <= 10:
-            page_num+= 1
-            curr_url = curr_url[0:-1]+str(page_num)
-        elif page_num <= 100:
-            page_num+= 1
-            curr_url = curr_url[0:-1]+str(page_num)
-        else:
-            print("wow you have 100 pages of clients, maybe time to update this")
+    driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div[1]/form/div/div[5]/a').click()
+    time.sleep(6)
+    driver.find_element_by_xpath('//*[@id="downloadLink"]/a').click()
     
     driver.close()
-    return(myParser)
 
-def nested_scrape(date, options_in, url, parser, driver): # a limited version of the scrape function to scrape next pages of table
-    driver.get(url)
-    table = driver.find_element_by_xpath('/html/body/div[1]/div/div/div[2]/div[2]/table')
-    innerHTML = table.get_attribute('innerHTML')
-    outerHTML = table.get_attribute('outerHTML')
-    if "No data found!" in outerHTML:
-        return False
-    else:
-        parser.feed(outerHTML)
-        return True
+
+
+def make_tab(workbook):
+    # get workbook
+    wb = xlrd.open_workbook(workbook)
+    sheet1 = wb.sheet_by_index(0)
     
-def update_sheets(sheet_title, table): # pygsheets helper function
-    curr_sheet = sh.worksheet_by_title(sheet_title)
-    curr_sheet.clear()
-    for i, row in enumerate(table, start=1):
-        curr_sheet.update_row(i, row, col_offset=0)
+    out_tab = []
+    # iterate through rows of workbook and update sheet value as you go
+    for i in range(len(sheet1.col_values(0))):
+        row = sheet1.row_values(i)
+        row.pop(15) # remove problematic column with NaNs
+        row.pop(0) # remove redundant column at beginning
+        out_tab.append(row)
+    
+    return(out_tab)
+  
 
-def comb_tab(parser): # this function combines the multiple pages of tables into one and throws away duplicate header rows
-    master_list = []
-    for row in parser.tables[0]:
-        master_list.append(row)
-    for i in range(1, len(parser.tables)):
-        parser.tables[i].pop(0)
-        for row in parser.tables[i]:
-            master_list.append(row)
-    return master_list
-
-def get_dates(): # creates desired date ranges for JS script execution
+def get_dates():
     # today (data so far for the current date)
     today = (datetime.datetime.now()-datetime.timedelta(hours=4)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4)).isoformat()[0:10]
     today = "arguments[0].value = '"+today+"'"
@@ -151,8 +132,9 @@ def get_dates(): # creates desired date ranges for JS script execution
     return dates
 
 
-def get_default_chrome_options(): # options we use, moslty from vittario nardone's project
+def get_default_chrome_options():
     chrome_options = webdriver.ChromeOptions()
+
     lambda_options = [
         '--autoplay-policy=user-gesture-required',
         '--disable-background-networking',
@@ -200,5 +182,6 @@ def get_default_chrome_options(): # options we use, moslty from vittario nardone
         chrome_options.add_argument(argument)
             
     return chrome_options
+
 
 
