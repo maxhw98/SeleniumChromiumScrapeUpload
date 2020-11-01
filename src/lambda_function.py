@@ -1,22 +1,24 @@
+
+import os
 import time
 import datetime
 import pygsheets
-from html_table_parser import HTMLTableParser
-
+import xlrd
+import os
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # login info
 perf_url = "https://app.usealan.com/report/performance"
-# sched_url = "https://app.usealan.com/report/scheduling_rate" other url I scraped
-username = "USERNAME"
-password = "PASSWORD"
+sched_url = "https://app.usealan.com/report/scheduling_rate"
+username = "maximumfloats"
+password = "4z?qGDYysmQ*6Ev"
 
-# google sheets verification and getting the master sheet we'll edit the tabs in
+#google sheets verification and getting the master sheet we'll edit the tabs in
 auth_file = '/opt/bin/alanSheetsUpdater-ccbfcfd03f27.json'
 gc = pygsheets.authorize(service_file=auth_file)
-sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/***************************/edit#gid=************')
+sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1rLDIoaVNMVaVfYZj8id0hsVRcXqLzLa-dk1tbkBpcAw/edit#gid=1100991330')
 
 # these are the tabs we will be updating, and we'll fetch them by name
 sheet_names = ['Today Performance Report Raw Data',
@@ -34,7 +36,8 @@ def lambda_handler(event, context):
     dates = get_dates()
     # make directory in tmp (my only writiable dir) for the files
     os.chdir("/tmp")
-    os.mkdir("data_downloads")
+    if "data_downloads" not in os.listdir():
+        os.mkdir("data_downloads")
     os.chdir("data_downloads")
     # get excel sheets
     for date in dates:
@@ -51,7 +54,7 @@ def lambda_handler(event, context):
     for i in range(len(tables)):
         curr_sheet = sh.worksheet_by_title(sheet_names[i])
         curr_sheet.update_values('A1', tables[i])
-        print(sheet_names[i],"updated")
+        print(sheet_names[i],"updated - ", dates[i])
     # return(tables)
 
 
@@ -100,27 +103,27 @@ def get_dates():
     today = "arguments[0].value = '"+today+"'"
 
     # past 3 days (excluding today, i.e. from four days ago to one day ago)
-    past3 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=4)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past3 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=3)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past3 = "arguments[0].value = '"+past3+"'"
 
     # past 5 days
-    past5 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=6)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past5 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=5)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past5 = "arguments[0].value = '"+past5+"'"
 
     # past 7 days
-    past7 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=8)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past7 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=7)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past7 = "arguments[0].value = '"+past7+"'"
 
     # past 14 days
-    past14 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=15)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past14 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=14)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past14 = "arguments[0].value = '"+past14+"'"
 
     # past 21 days
-    past21 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=22)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past21 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=21)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past21 = "arguments[0].value = '"+past21+"'"
 
     # past 42
-    past42 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=43)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
+    past42 = (datetime.datetime.now()-datetime.timedelta(hours=4, days=42)).isoformat()[0:10]+","+(datetime.datetime.now()-datetime.timedelta(hours=4, days=1)).isoformat()[0:10]
     past42 = "arguments[0].value = '"+past42+"'"
 
     # lifetime (start Jul 1 2018)
